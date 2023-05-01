@@ -28,6 +28,7 @@ Input and output
 The input should be taken in the form of commands input via the command line. The
 statements should consist of commands and arguments. Commands can include ‘signup’,
 ‘newsfeed’, ‘upvote’ etc. Arguments can vary depending on the commands.
+
 Example - reply(feed_id, reply_text)
 Question 1: Class Diagram
 Create a class diagram to fulfil the above given set of requirements. Ensure your class

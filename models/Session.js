@@ -36,6 +36,7 @@ class Session {
   // signup static method
   static signup(username, password) {
     const newUser = new User(username, password);
+    
     newUser.signup();
     this.isLoggedin = true
     console.log(`User ${username} has been created successfully.`);
