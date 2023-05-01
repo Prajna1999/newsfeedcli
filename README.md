@@ -22,6 +22,8 @@ following (following options to sort feed by are available):
 - Timestamp: more recent the better.
 ● Allow users to comment on a comment and upvote/downvote a comment.
 ● Display time in language like 2m ago, 1 hr ago etc.
+
+
 Input and output
 The input should be taken in the form of commands input via the command line. The
 statements should consist of commands and arguments. Commands can include ‘signup’,

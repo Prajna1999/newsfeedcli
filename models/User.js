@@ -13,9 +13,11 @@ class User {
       if (User.isUsernameAvailable(this.username)) {
         // create new user account
         User.users.push(this);
-        console.log(`User ${this.username} has been created successfully.`);
+        // console.log(`User ${this.username} has been created successfully.`);
       } else {
         console.error(`Username ${this.username} is already taken.`);
+
+        return
       }
     } else {
       console.error('Please provide a valid username and password.');

@@ -1,39 +1,25 @@
 const User = require('./models/User')
 const Session = require('./models/Session')
 
-Session.login("percy123", "1234")
+const { Command } = require("commander")
+const program = new Command()
 
+program
+  .name("newsfeed cli")
+  .description("A demo social media newsfeed cli")
+  .version("1.0.0")
+
+program
+  .command("login")
+  .description("login with username and password")
+  .action(() => {
+    console.log("It works")
+  })
+
+program.parse()
+
+// Session.login("percy123", "1234")
 // Session.currentSession.follow("Tormund")
-Session.currentSession.postItem("Just setting up my app")
-
-
-
-
-// upvote post
+// Session.currentSession.postItem("Just setting up my app")
 // Session.currentSession.upvotePost(1)
-
-// logout session
-// Session.logout()
-// Session.currentSession.upvotePost(1)
-
-Session.currentSession.postItem("Fooling around")
-
-
-
-
-
-Session.currentSession.upvotePost(1)
-
-Session.currentSession.comment(1, "I am a comment")
-
-// reply on a comment
-Session.currentSession.addReply(1, "I am a reply", 1)
-
-// print newsfeed
-Session.currentSession.getNewsFeed()
-
-
-
-
-
-
+// Session.currentSession.comment
