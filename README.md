@@ -30,6 +30,7 @@ statements should consist of commands and arguments. Commands can include ‘sig
 ‘newsfeed’, ‘upvote’ etc. Arguments can vary depending on the commands.
 
 Example - reply(feed_id, reply_text)
+
 Question 1: Class Diagram
 Create a class diagram to fulfil the above given set of requirements. Ensure your class
 diagram contains all entities required as well as mention classes around any design patterns

@@ -44,27 +44,73 @@ function promptUser() {
 
     switch (command) {
       case 'login':
-        console.log("You entered 'login'");
+        // console.log("You entered 'login'");
+        Session.login(args[0], args[1])
         promptUser()
         break;
       case 'signup':
-        // console.log("You entered'signup'");
-        // promptSignup(args[0], args[1])
-        const [username, password] = args;
-        Session.signup(args[0], args[1])
+        const flags = parseFlags(args);
+        const { username, password } = flags;
+
+
+        Session.signup(flags.username, flags.password)
         promptUser()
         // signup()
         // promptUser()
         break;
       case 'follow':
         // console.log("You entered 'follow'");
-        console.log('You followed', args[0])
+        // console.log('You followed', args[0])
+        Session.currentSession.folllow(args[0])
         promptUser()
         break;
+      case 'unfollow':
+        Session.currentSession.unfollow(args[0])
+        promptUser()
+        break;
+      case 'newsfeed':
+        Session.currentSession.getNewsfeed()
+        promptUser()
+        break;
+      case 'post':
+        Session.currentSession.postItem(args[1]);
+        promptUser();
+        break;
+      case 'comment':
+        Session.currentSession.comment(args[1], args[2]);
+        promptUser();
+        break;
+
+      case 'reply':
+        Session.currentSession.addReply(args[0], args[1], args[2]);
+        promptUser();
+        break;
+      case 'upvote':
+        Session.currentSession.upvote(args[0]);
+        promptUser();
+        break;
+      case 'downvote':
+        Session.currentSession.downvote(args[0]);
+        promptUser();
+        break;
+      case 'upvoteComment':
+        Session.currentSession.upvoteComment(args[0], args[1]);
+        promptUser();
+        break;
+      case 'downvoteComment':
+        Session.currentSession.downvoteComment(args[0], args[1]);
+        promptUser();
+        break;
+
+      case 'logout':
+        Session.logout();
+        // promptUser();
+        process.exit(0);
+      // break;
       case 'help':
 
         console.log('List of available commands:');
-        console.log('- signup --name <name> --email <email> --password <password>: create a new user');
+        console.log('- signup --username <username> --password <password>: create a new user');
         console.log('- login --email <email> --password <password>: log in as an existing user');
         console.log('- follow <follower_email> <followee_email>: make the follower user follow the followee user');
         console.log('- help: display this help message');
@@ -78,4 +124,36 @@ function promptUser() {
     }
   })
 }
+
+//parse flags
+function parseFlags(args) {
+  const flags = {};
+  for (let i = 0; i < args.length; i++) {
+    let arg = args[i]
+    if (arg.startsWith('--')) {
+      const flagName = arg.slice(2);
+      const flagValue = args[i + 1];
+      flags[flagName] = flagValue;
+      i++
+    }
+
+  }
+  return flags;
+}
+
+
+// console.log("Welcome to my application!");
+// rl.question("Do you have an account? (y/n): ", (answer) => {
+//   if (answer === "y") {
+//     // login();
+//     // promptLogin()
+//     Session.login(args[0], args[1])
+//   } else {
+//     // signup();
+//     // promptSignup()
+//     Session.signup()
+//   }
+// });
+
+
 promptUser()

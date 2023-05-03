@@ -35,13 +35,28 @@ class Session {
 
   // signup static method
   static signup(username, password) {
+
+    if (Session.currentSession !== null) {
+
+      console.log(`User ${Session.currentSession.user.username} is already logged in.`);
+
+      return;
+
+    }
+
+    // this.isLoggedin = true
     const newUser = new User(username, password);
-    
+
     newUser.signup();
-    this.isLoggedin = true
+
     console.log(`User ${username} has been created successfully.`);
 
     Session.login(username, password)
+
+    return;
+
+
+
   }
 
   follow(username) {
@@ -155,8 +170,8 @@ class Session {
 
   // upvote a comment
   upvoteComment(commentId, postId) {
-      const post=this.newsfeed.find(post => post.id === postId);
-      const comment=post.comments.find(comment => comment.id === commentId);
+    const post = this.newsfeed.find(post => post.id === postId);
+    const comment = post.comments.find(comment => comment.id === commentId);
     if (Session.currentSession) {
       if (!comment.upvotedUsers.includes(this.user.username)) {
         comment.upvotedUsers.push(this.user.username);
@@ -165,7 +180,7 @@ class Session {
       } else {
         console.log(`User ${this.user.username} already upvoted the comment with ID ${comment.id}`);
       }
-    
+
     } else {
       console.error("User not logged in");
     }
@@ -173,25 +188,25 @@ class Session {
 
   // downvote a comment
   downvoteComment(commentId, postId) {
-    const post=this.newsfeed.find(post => post.id === postId);
-    const comment=post.comments.find(comment => comment.id === commentId);
+    const post = this.newsfeed.find(post => post.id === postId);
+    const comment = post.comments.find(comment => comment.id === commentId);
     if (Session.currentSession) {
       if (!comment.downvotedUsers.includes(this.user.username)) {
         comment.downvotedUsers.push(this.user.username);
         comment.downvote();
         console.log(`User ${this.user.username} downvoted the comment with ID ${comment.id}`);
-      }else{
+      } else {
         consol.log(`User ${this.user.username} already downvoted the comment with ID ${comment.id}`);
       }
-  }else{
+    } else {
       console.error("User not logged in")
+    }
   }
-  }
 
 
 
 
-  
+
   //get news feed sorted by some properties
   // we are using default params
 
