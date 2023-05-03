@@ -102,6 +102,18 @@ class Session {
     const post = this.newsfeed.find((post) => post.id === postId)
     // const currentUser = this.user.username
     if (Session.currentSession) {
+      if (post.downvotedUsers.includes(this.user.username)) {
+        //user has already downvoted, remove their downvote
+        const index = post.downvotedUsers.indexOf(this.user.username);
+
+        post.downvotedUsers.splice(index, 1);
+      }
+
+
+
+
+
+
       if (!post.upvotedUsers.includes(this.user.username)) {
         post.upvotedUsers.push(this.user.username);
         post.upvote()
@@ -120,7 +132,18 @@ class Session {
   // downvote post
   downvotePost(postId) {
     const post = this.newsfeed.find((post) => post.id === postId)
+
+
+
+
     if (Session.currentSession) {
+
+      if (post.downvotedUsers.includes(this.user.username)) {
+        //user has already downvoted, remove their downvote
+        const index = post.downvotedUsers.indexOf(this.user.username);
+        post.downvotedUsers.splice(index, 1);
+      }
+
       // post.downvote();
       if (!post.downvotedUsers.includes(this.user)) {
         post.downvotedUsers.push(this.user);
@@ -173,6 +196,14 @@ class Session {
     const post = this.newsfeed.find(post => post.id === postId);
     const comment = post.comments.find(comment => comment.id === commentId);
     if (Session.currentSession) {
+      if (comment.downvotedUsers.includes(this.user.username)) {
+        //user has already downvoted, remove their downvote
+        const index = comment.downvotedUsers.indexOf(this.user.username);
+        comment.downvotedUsers.splice(index, 1);
+      }
+
+
+
       if (!comment.upvotedUsers.includes(this.user.username)) {
         comment.upvotedUsers.push(this.user.username);
         comment.upvote();
@@ -191,6 +222,14 @@ class Session {
     const post = this.newsfeed.find(post => post.id === postId);
     const comment = post.comments.find(comment => comment.id === commentId);
     if (Session.currentSession) {
+      if (comment.upvotedUsers.includes(this.user.username)) {
+        //user has already upvoted, remove their upvote
+        const index = comment.upvotedUsers.indexOf(this.user.username);
+        comment.upvotedUsers.splice(index, 1);
+      }
+
+
+
       if (!comment.downvotedUsers.includes(this.user.username)) {
         comment.downvotedUsers.push(this.user.username);
         comment.downvote();
