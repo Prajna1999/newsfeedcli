@@ -88,7 +88,7 @@ class Session {
   // postItem to the wall
   postItem(content) {
     if (Session.currentSession !== null) {
-      const post = new Post(content, this.user.username);
+      const post = this.user.createPost(content);
       this.newsfeed.push(post);
       console.log(`User ${this.user.username} posted: ${content}`)
     } else {

@@ -6,8 +6,8 @@ class Post {
     this.id = ++Post.idCounter;
     this.text = text;
     this.timestampt = new Date();
-    this.upvotes = 0;
-    this.downvotes = 0;
+    // this.upvotes = 0;
+    // this.downvotes = 0;
     this.upvotedUsers = []
     this.downvotedUsers = [];
 

@@ -1,3 +1,4 @@
+const Post = require('./Post');
 class User {
   static idCounter = 0
   constructor(username, password) {
@@ -59,6 +60,12 @@ class User {
     } else {
       console.log(`${this.username} is not following ${user.username}.`);
     }
+  }
+
+  createPost(content) {
+    const post = new Post(content, this);
+    this.posts.push(post); // add the new Post object to the array
+    return post;
   }
 
   static isUsernameAvailable(username) {
