@@ -255,7 +255,7 @@ class Session {
         if (sortBy === "mostRecent") {
           return b.timestamp - a.timestamp;
         } else if (sortBy === "mostUpvoted") {
-          return b.upvotes.length - a.upvotes.length;
+          return b.upvotedUsers.length - a.upvotedUsers.length;
         } else if (sortBy === "mostCommented") {
           return b.comments.length - a.comments.length;
         }
