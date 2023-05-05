@@ -2,6 +2,8 @@ const User = require('./User');
 const Post = require('./Post');
 const Comment = require('./Comment')
 
+const { getUserByUsername, supabase, findUserByUsernameAndPassword } = require('../utils')
+
 class Session {
 
   static currentSession = null;
@@ -13,14 +15,14 @@ class Session {
 
   }
 
-  static login(username, password) {
+  static async login(username, password) {
 
-    const user = User.users.find(u => u.username === username && u.password === password);
+    const user = await findUserByUsernameAndPassword(username, password)
 
     if (user) {
       // set the session
       Session.currentSession = new Session(user);
-      this.isLoggedin = true
+      // this.isLoggedin = true
       console.log(`User ${username} logged in successfully`)
     } else {
       console.error(`Invalid username or password.`);
@@ -34,20 +36,40 @@ class Session {
   }
 
   // signup static method
-  static signup(username, password) {
+  static async signup(username, password) {
 
     if (Session.currentSession !== null) {
 
-      console.log(`User ${Session.currentSession.user.username} is already logged in.`);
+      console.log(`User ${this.user.username} is already logged in.`);
 
       return;
 
     }
 
-    // this.isLoggedin = true
+    //if the username available, then create a user.
+    const usernameExists = await getUserByUsername(username)
+    if (usernameExists) {
+      throw new Error(username + 'is already taken')
+    }
+
+
+
     const newUser = new User(username, password);
 
-    newUser.signup();
+    const { insertError } = await supabase
+      .from('users')
+      .insert(newUser)
+
+    // insert user data into the table
+
+    if (insertError) {
+      throw new Error(insertError.message)
+    }
+
+
+
+
+    // newUser.signup();
 
     console.log(`User ${username} has been created successfully.`);
 
@@ -266,6 +288,9 @@ class Session {
       console.error("User not logged in");
     }
   }
+
+
+  // static method for is Username Available
 
 
 }

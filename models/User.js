@@ -1,13 +1,13 @@
 const Post = require('./Post');
 
 class User {
-  static idCounter = 0
+  // static idCounter = 0
   constructor(username, password) {
-    this.id = ++User.idCounter;
+    // this.id = ++User.idCounter;
     this.username = username;
     this.password = password;
-    this.following = [];
-    this.post = []
+    // this.following = [];
+    // this.post = []
   }
 
   signup() {

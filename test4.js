@@ -54,6 +54,7 @@ function promptUser() {
 
 
         Session.signup(flags.username, flags.password)
+
         promptUser()
         // signup()
         // promptUser()
