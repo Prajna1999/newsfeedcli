@@ -8,9 +8,9 @@ class Session {
 
   constructor(user) {
     this.user = user
-    this.isLoggedin = false;
+
     this.newsfeed = [];
-    this.comments = []
+
   }
 
   static login(username, password) {

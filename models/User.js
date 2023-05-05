@@ -1,4 +1,5 @@
 const Post = require('./Post');
+
 class User {
   static idCounter = 0
   constructor(username, password) {
