@@ -1,6 +1,4 @@
 const User = require('./User');
-// const Post = require('./Post');
-// const Comment = require('./Comment')
 
 
 const { getUserByUsername, supabase, findUserByUsernameAndPassword } = require('../utils')
@@ -455,27 +453,8 @@ class Session {
     }
   }
 
-  // show newsfeed
-  //get news feed sorted by some properties
 
-  async showNewsFeed(sortStrategy) {
-    const newsFeedItems = await this.newsFeed.getNewsFeed(sortStrategy);
-    console.log('News Feed:');
-    newsFeedItems.forEach((item) => {
-      console.log(`Post ID: ${item.id}`);
-      console.log(`User: ${item.username}`);
-      console.log(`Content: ${item.content}`);
-      console.log(`Upvotes: ${item.upvotes}`);
-      console.log(`Downvotes: ${item.downvotes}`);
-      console.log(`Comment Count: ${item.commentCount}`);
-      console.log(`Timestamp: ${item.timestamp}`);
-      console.log('------------------------------------');
-    });
-  }
 
-  setNewsFeedSortStrategy(sortStrategy) {
-    this.newsFeed.setSortStrategy(sortStrategy);
-  }
 }
 module.exports = Session;
 
