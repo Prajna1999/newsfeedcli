@@ -1,6 +1,7 @@
 const User = require('./User');
-const Post = require('./Post');
-const Comment = require('./Comment')
+// const Post = require('./Post');
+// const Comment = require('./Comment')
+
 
 const { getUserByUsername, supabase, findUserByUsernameAndPassword } = require('../utils')
 
@@ -11,7 +12,7 @@ class Session {
   constructor(user) {
     this.user = user
 
-    this.newsfeed = [];
+
 
   }
 
@@ -233,6 +234,7 @@ class Session {
 
         if (existingVote) {
           if (existingVote.vote_type === 'UPVOTE') {
+            console.log("You have already upvoted", postId);
             return; // user has already upvoted
           }
 
@@ -277,6 +279,7 @@ class Session {
 
         if (existingVote) {
           if (existingVote.vote_type === 'DOWNVOTE') {
+            console.log("You have already downvoted", postId);
             return; // user has already upvoted
           }
 
@@ -296,119 +299,183 @@ class Session {
 
   }
   // add comment to a post
-  comment(postId, reply) {
-    const post = this.newsfeed.find((post) => post.id === postId)
+  async comment(postId, text) {
+
     if (Session.currentSession) {
-      // post.comments.push(reply);
-      const newComment = new Comment(reply, this.user, postId);
-      post.addComment(newComment);
-      console.log(`User ${this.user.username} commented on the post with ID ${post.id}`);
+      const userId = this.user.id
+      try {
+        await supabase.from('comments').insert({ post_id: postId, content: text, parent_id: postId, user_id: userId }).select();
+        console.log('Comment added successfully:', text);
+      } catch (error) {
+        console.error('Error adding comment:', error.message);
+      }
+
     } else {
       console.error("User not logged in");
     }
   }
 
   // reply to a comment on a post
-  addReply(commentId, replyText, postId) {
-    if (!Session.currentSession) {
-      console.log("You must be logged in to reply to a comment");
-      return;
-    }
-    const currentUser = Session.currentSession.user;
-    // const comment = this.comments.find((c) => c.id === commentId);
-    const post = this.newsfeed.find(post => post.id === postId);
-    const comment = post.comments.find(comment => comment.id === commentId);
-    if (!comment) {
-      console.log(`Comment with id ${commentId} not found`);
-      return;
-    }
-    const reply = new Comment(replyText, currentUser, commentId);
+  async reply(commentId, text) {
 
-    // comment.addReply(reply.text);
-    comment.replies.push(reply);
-    console.log(`${reply.text} added to comment with id ${commentId}`);
+    if (Session.currentSession) {
+      const userId = this.user.id
+      try {
+        // Check if the comment exists
+        const { data: comment, error: commentError } = await supabase
+          .from('comments')
+          .select('*')
+          .eq('id', commentId)
+          .single();
+
+        if (commentError || !comment) {
+          throw new Error(`Error fetching comment with id ${commentId}: ${commentError}`);
+        }
+
+        // Insert the reply comment
+        const { data: reply, error: replyError } = await supabase
+          .from('comments')
+          .insert({ post_id: comment.post_id, content: text, parent_id: commentId, user_id: userId })
+          .select();
+
+        if (replyError || !reply) {
+          throw new Error(`Error creating reply comment: ${replyError}`);
+        }
+
+        console.log(`Reply added successfully: ${reply[0].content}`);
+      } catch (error) {
+        console.error('Error replying to comment:', error.message);
+      }
+
+
+
+
+
+    } else {
+      console.log("User not logged in");
+    }
+
   }
+
 
   // upvote a comment
-  upvoteComment(commentId, postId) {
-    const post = this.newsfeed.find(post => post.id === postId);
-    const comment = post.comments.find(comment => comment.id === commentId);
-    if (Session.currentSession) {
-      if (comment.downvotedUsers.includes(this.user.username)) {
-        //user has already downvoted, remove their downvote
-        const index = comment.downvotedUsers.indexOf(this.user.username);
-        comment.downvotedUsers.splice(index, 1);
+  async upvoteComment(commentId) {
+    try {
+      const userId = this.user.id
+      const { data: existingVote, error } = await supabase
+        .from('comment_votes')
+        .select('vote_type')
+        .eq('comment_id', commentId)
+        .eq('user_id', userId)
+        .single();
+
+      if (error && error.message !== 'No single row found') {
+        throw error;
       }
 
-
-
-      if (!comment.upvotedUsers.includes(this.user.username)) {
-        comment.upvotedUsers.push(this.user.username);
-        comment.upvote();
-        console.log(`User ${this.user.username} upvoted the comment with ID ${comment.id}`);
-      } else {
-        console.log(`User ${this.user.username} already upvoted the comment with ID ${comment.id}`);
-      }
-
-    } else {
-      console.error("User not logged in");
-    }
-  }
-
-  // downvote a comment
-  downvoteComment(commentId, postId) {
-    const post = this.newsfeed.find(post => post.id === postId);
-    const comment = post.comments.find(comment => comment.id === commentId);
-    if (Session.currentSession) {
-      if (comment.upvotedUsers.includes(this.user.username)) {
-        //user has already upvoted, remove their upvote
-        const index = comment.upvotedUsers.indexOf(this.user.username);
-        comment.upvotedUsers.splice(index, 1);
-      }
-
-
-
-      if (!comment.downvotedUsers.includes(this.user.username)) {
-        comment.downvotedUsers.push(this.user.username);
-        comment.downvote();
-        console.log(`User ${this.user.username} downvoted the comment with ID ${comment.id}`);
-      } else {
-        consol.log(`User ${this.user.username} already downvoted the comment with ID ${comment.id}`);
-      }
-    } else {
-      console.error("User not logged in")
-    }
-  }
-
-
-
-
-
-  //get news feed sorted by some properties
-  // we are using default params
-
-  getNewsFeed(sortBy = "mostRecent") {
-    if (Session.currentSession) {
-      const sortedFeed = this.newsfeed.sort((a, b) => {
-        if (sortBy === "mostRecent") {
-          return b.timestamp - a.timestamp;
-        } else if (sortBy === "mostUpvoted") {
-          return b.upvotedUsers.length - a.upvotedUsers.length;
-        } else if (sortBy === "mostCommented") {
-          return b.comments.length - a.comments.length;
+      if (existingVote) {
+        if (existingVote.vote_type === 'UPVOTE') {
+          return; // user has already upvoted
         }
-      });
-      console.log(`News feed for user ${this.user.username} sorted by ${sortBy}`)
-      sortedFeed.forEach(post => console.log(post))
-    } else {
-      console.error("User not logged in");
+
+        await supabase
+          .from('comment_votes')
+          .update({ vote_type: 'UPVOTE' })
+          .eq('comment_id', commentId)
+          .eq('user_id', userId);
+      } else {
+        await supabase.from('comment_votes').insert({ comment_id: commentId, user_id: userId, vote_type: 'UPVOTE' });
+      }
+    } catch (error) {
+      console.error('Error upvoting comment:', error.message);
+      return
     }
+    console.log(`You upvoted comment ${commentId}`);
+  }
+
+  async downvoteComment(commentId) {
+    try {
+      const userId = this.user.id
+      const { data: existingVote, error } = await supabase
+        .from('comment_votes')
+        .select('vote_type')
+        .eq('comment_id', commentId)
+        .eq('user_id', userId)
+        .single();
+
+      if (error && error.message !== 'No single row found') {
+        throw error;
+      }
+
+      if (existingVote) {
+        if (existingVote.vote_type === 'DOWNVOTE') {
+          return; // user has already downvoted
+        }
+
+        await supabase
+          .from('comment_votes')
+          .update({ vote_type: 'DOWNVOTE' })
+          .eq('comment_id', commentId)
+          .eq('user_id', userId);
+      } else {
+        await supabase.from('comment_votes').insert({ comment_id: commentId, user_id: userId, vote_type: 'DOWNVOTE' });
+      }
+    } catch (error) {
+      console.error('Error downvoting comment:', error.message);
+      return
+    }
+    console.log(`You downvoted comment ${commentId}`);
   }
 
 
-  // static method for is Username Available
 
 
+
+
+
+  // to see all users of the social media site.
+  async getAllUsers() {
+    if (Session.currentSession) {
+      try {
+        const { data: users, error } = await supabase
+          .from('users')
+          .select('id, username');
+
+        if (error) {
+          throw error;
+        }
+
+        // console.log(users);
+        users.forEach((user) => console.log(`user_id: ${user.id} username: ${user.username}`))
+      } catch (error) {
+        console.error('Error getting all users:', error.message);
+      }
+    } else {
+      console.log('User not loggedin')
+    }
+  }
+
+  // show newsfeed
+  //get news feed sorted by some properties
+
+  async showNewsFeed(sortStrategy) {
+    const newsFeedItems = await this.newsFeed.getNewsFeed(sortStrategy);
+    console.log('News Feed:');
+    newsFeedItems.forEach((item) => {
+      console.log(`Post ID: ${item.id}`);
+      console.log(`User: ${item.username}`);
+      console.log(`Content: ${item.content}`);
+      console.log(`Upvotes: ${item.upvotes}`);
+      console.log(`Downvotes: ${item.downvotes}`);
+      console.log(`Comment Count: ${item.commentCount}`);
+      console.log(`Timestamp: ${item.timestamp}`);
+      console.log('------------------------------------');
+    });
+  }
+
+  setNewsFeedSortStrategy(sortStrategy) {
+    this.newsFeed.setSortStrategy(sortStrategy);
+  }
 }
 module.exports = Session;
 
