@@ -81,5 +81,5 @@ class User {
 }
 
 // static variable to keep track of all users
-User.users = [new User("percy123", "1234"), new User("Meg1234", "1234")];
+// User.users = [new User("percy123", "1234"), new User("Meg1234", "1234")];
 module.exports = User;

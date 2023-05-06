@@ -32,7 +32,7 @@ class Session {
   static logout() {
     // this.isLoggedIn = false;
     Session.currentSession = null;
-    console.log(`User logged out successfully.`);
+    console.log(`User logged out successfully. Adios friend`);
   }
 
   // signup static method
@@ -73,7 +73,7 @@ class Session {
 
     console.log(`User ${username} has been created successfully.`);
 
-    Session.login(username, password)
+    Session.currentSession = new Session(newUser)
 
     return;
 
@@ -87,46 +87,93 @@ class Session {
       // Get the current user's ID
       // const { user } = await supabase.auth.user();
       const currentUserId = Session.currentSession.user.id;
+      try {
+        const { data: followee } = await supabase
+          .from("users")
+          .select("*")
+          .eq("username", username)
+          .single();
 
-      // Get the ID of the user being followed
-      const { data: users, error } = await supabase
-        .from('users')
-        .select('id')
-        .eq('username', username)
-        .single();
+        if (!followee) {
+          console.log(`User ${username} does not exist.`);
+          return;
+        }
 
-      if (error) {
+        // if already following
+        const { data: existingFollow } = await supabase
+          .from("follows")
+          .select("*")
+          .eq("follower_id", this.user.id)
+          .eq("followee_id", followee.id)
+          .single();
+
+        if (existingFollow) {
+          console.log(`You are already following ${username}.`);
+          return;
+        }
+
+        const { error } = await supabase.from("follows").insert([
+          {
+            follower_id: this.user.id,
+            followee_id: followee.id,
+          },
+        ]);
+
+        if (error) {
+          console.error(error);
+        } else {
+          console.log(`You are now following ${username}.`);
+        }
+      } catch (error) {
         console.error(error);
-        return;
       }
-
-      const userId = users.id;
-
-      // Insert a new row into the followers table
-      const { error: insertError } = await supabase
-        .from('follows')
-        .insert({ follower_id: currentUserId, followee_id: userId });
-
-      if (insertError) {
-        console.error(insertError);
-        return;
-      }
-
-      console.log(`You are now following ${username}.`);
     } else {
       console.log(`You are not logged in.`);
     }
 
 
+
   }
 
-  unfollow(username) {
-    if (this.isLoggedin) {
-      const userToUnfollow = User.users.find(user => user.username === username);
-      if (userToUnfollow) {
-        this.user.unfollow(userToUnfollow);
-      } else {
-        console.error(`Could not find user ${username} to unfollow.`);
+  async unfollow(username) {
+    if (Session.currentSession) {
+      try {
+        const { data: followee } = await supabase
+          .from("users")
+          .select("*")
+          .eq("username", username)
+          .single();
+
+        if (!followee) {
+          console.log(`User ${username} does not exist.`);
+          return;
+        }
+
+        const { data: existingFollow } = await supabase
+          .from("follows")
+          .select("*")
+          .eq("follower_id", this.user.id)
+          .eq("followee_id", followee.id)
+          .single();
+
+        if (!existingFollow) {
+          console.log(`You are not following ${username}.`);
+          return;
+        }
+
+        // delete the entry in the follows table
+        const { error } = await supabase
+          .from("follows")
+          .delete()
+          .eq("id", existingFollow.id);
+
+        if (error) {
+          console.error(error);
+        } else {
+          console.log(`You have unfollowed ${username}.`);
+        }
+      } catch (error) {
+        console.error(error);
       }
     } else {
       console.error('User is not logged in.');
@@ -137,18 +184,25 @@ class Session {
 
     if (Session.currentSession !== null) {
 
-      const authorId = Session.currentSession.user.id;
+      try {
+        const authorId = Session.currentSession.user.id;
 
 
-      const { data, error } = await supabase.from('posts').insert({ user_id: authorId, title: title, text: content });
 
-      if (error) {
-        // throw new Error(error.message);
-        console.log(error.message);
-        return
+        const { error } = await supabase.from('posts').insert({ user_id: authorId, title: title, text: content });
+
+        if (error) {
+          // throw new Error(error.message);
+          console.log(error.message);
+          return
+        }
+
+        console.log(`User ${this.user.username} posted: ${content}`);
+
+      } catch (error) {
+        console.error("error posting item")
+        return;
       }
-
-      console.log(`User ${this.user.username} posted: ${title}`);
 
 
 
@@ -159,64 +213,87 @@ class Session {
   }
 
   // upvote post
-  upvotePost(postId) {
-    const post = this.newsfeed.find((post) => post.id === postId)
+  async upvotePost(postId) {
+    // const post = this.newsfeed.find((post) => post.id === postId)
     // const currentUser = this.user.username
+    const userId = this.user.id
     if (Session.currentSession) {
-      if (post.downvotedUsers.includes(this.user.username)) {
-        //user has already downvoted, remove their downvote
-        const index = post.downvotedUsers.indexOf(this.user.username);
+      // const currentUserId = Session.currentSession.user.id;
+      try {
+        if (!postId) {
+          throw new Error('Invalid input: postId and userId are required');
+        }
 
-        post.downvotedUsers.splice(index, 1);
+        const { data: existingVote } = await supabase
+          .from('postvote')
+          .select('vote_type')
+          .eq('post_id', postId)
+          .eq('user_id', userId)
+          .single();
+
+        if (existingVote) {
+          if (existingVote.vote_type === 'UPVOTE') {
+            return; // user has already upvoted
+          }
+
+          await supabase.from('postvote').update('vote_type', { vote_type: 'UPVOTE' }).eq('post_id', postId).eq('user_id', userId);
+        } else {
+          await supabase.from('postvote').insert({ post_id: postId, user_id: userId, vote_type: 'UPVOTE' });
+        }
+      } catch (error) {
+        console.error('Error upvoting post:', error.message);
+        return
       }
-
-
-
-
-
-
-      if (!post.upvotedUsers.includes(this.user.username)) {
-        post.upvotedUsers.push(this.user.username);
-        post.upvote()
-        console.log(`User ${this.user.username} upvoted the post with ID ${post.id}`);
-      } else {
-        console.log(`User ${this.user.username} already upvoted the post with ID ${post.id}`);
-      }
-      // post.upvote();
-
     } else {
       console.error("User not logged in lalal");
+      return
     }
-    // console.log(post.upvotedUsers);
+    console.log(`You upvoted post ${postId}`);
+
   }
 
   // downvote post
-  downvotePost(postId) {
-    const post = this.newsfeed.find((post) => post.id === postId)
+  async downvotePost(postId) {
+
 
 
 
 
     if (Session.currentSession) {
 
-      if (post.downvotedUsers.includes(this.user.username)) {
-        //user has already downvoted, remove their downvote
-        const index = post.downvotedUsers.indexOf(this.user.username);
-        post.downvotedUsers.splice(index, 1);
-      }
+      // const currentUserId = Session.currentSession.user.id;
+      const userId = this.user.id
+      try {
+        if (!postId) {
+          throw new Error('Invalid input: postId and userId are required');
+        }
 
-      // post.downvote();
-      if (!post.downvotedUsers.includes(this.user)) {
-        post.downvotedUsers.push(this.user);
-        post.downvote();
-        console.log(`User ${this.user.username} downvoted the post with ID ${post.id}`);
-      } else {
-        console.log(`User ${this.user.username} already downvoted the post with ID ${post.id}`);
-      }
+        const { data: existingVote } = await supabase
+          .from('postvote')
+          .select('vote_type')
+          .eq('post_id', postId)
+          .eq('user_id', userId)
+          .single();
 
+        if (existingVote) {
+          if (existingVote.vote_type === 'DOWNVOTE') {
+            return; // user has already upvoted
+          }
+
+          await supabase.from('postvote').update('vote_type', { vote_type: 'DOWNVOTE' }).eq('post_id', postId).eq('user_id', userId);
+        } else {
+          await supabase.from('postvote').insert({ post_id: postId, user_id: userId, vote_type: 'DOWNVOTE' });
+        }
+      } catch (error) {
+        console.error('Error downvoting post:', error.message);
+        return
+      }
     } else {
-      console.error("User not logged in");
+      console.error("User not logged in lalal");
+      return
     }
+    console.log(`You downvoted post ${postId}`);
+
   }
   // add comment to a post
   comment(postId, reply) {

@@ -44,6 +44,69 @@ async function findUserByUsernameAndPassword(username, password) {
 
 getUserByUsername("Prajna1999")
 
+async function upvotePost(postId, userId) {
+  try {
 
+
+    const { data: existingVote, error } = await supabase
+      .from('postvote')
+      .select('vote_type')
+      .eq('post_id', postId)
+      .eq('user_id', userId)
+      .single();
+
+    if (error && error.message !== 'No single row found') {
+      throw error;
+    }
+
+    if (existingVote) {
+      if (existingVote.vote_type === 'UPVOTE') {
+        return; // user has already upvoted
+      }
+
+      const { error } = await supabase
+        .from('postvote')
+        .update({ vote_type: 'UPVOTE' })
+        .eq('post_id', postId)
+        .eq('user_id', userId);
+    } else {
+      const { error } = await supabase.from('vote_type').insert([{ post_id: postId, user_id: userId, vote_type: 'UPVOTE' }]);
+    }
+  } catch (error) {
+    console.error('Error upvoting post:', error.message);
+  }
+}
+
+// upvotePost(6, 1)
+
+
+async function upvotePost2(postId, userId) {
+  try {
+    if (!postId || !userId) {
+      throw new Error('Invalid input: postId and userId are required');
+    }
+
+    const { data: existingVote } = await supabase
+      .from('postvote')
+      .select('vote_type')
+      .eq('post_id', postId)
+      .eq('user_id', userId)
+      .single();
+
+    if (existingVote) {
+      if (existingVote.vote_type === 'UPVOTE') {
+        return; // user has already upvoted
+      }
+
+      await supabase.from('postvote').update('vote_type', { vote_type: 'UPVOTE' }).eq('post_id', postId).eq('user_id', userId);
+    } else {
+      await supabase.from('postvote').insert({ post_id: postId, user_id: userId, vote_type: 'UPVOTE' });
+    }
+  } catch (error) {
+    console.error('Error upvoting post:', error.message);
+  }
+}
+
+upvotePost2(2, 1)
 
 module.exports = { getUserByUsername, supabase, findUserByUsernameAndPassword }

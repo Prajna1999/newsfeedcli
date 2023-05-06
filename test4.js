@@ -90,11 +90,11 @@ function promptUser() {
         promptUser();
         break;
       case 'upvote':
-        Session.currentSession.upvote(args[0]);
+        Session.currentSession.upvotePost(args[0]);
         promptUser();
         break;
       case 'downvote':
-        Session.currentSession.downvote(args[0]);
+        Session.currentSession.downvotePost(args[0]);
         promptUser();
         break;
       case 'upvoteComment':
