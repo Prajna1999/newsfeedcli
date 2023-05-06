@@ -42,6 +42,8 @@ async function findUserByUsernameAndPassword(username, password) {
   return data[0]
 }
 
-// getUserByUsername("Prajna1")
+getUserByUsername("Prajna1999")
+
+
 
 module.exports = { getUserByUsername, supabase, findUserByUsernameAndPassword }

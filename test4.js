@@ -39,7 +39,7 @@ function promptUser() {
   console.log("10. Show all users")
   console.log("\n");
 
-  rl.question('Enter command:', (input) => {
+  rl.question('> ', (input) => {
     const [command, ...args] = input.split(' ');
 
     switch (command) {
@@ -62,7 +62,7 @@ function promptUser() {
       case 'follow':
         // console.log("You entered 'follow'");
         // console.log('You followed', args[0])
-        Session.currentSession.folllow(args[0])
+        Session.currentSession.follow(args[0])
         promptUser()
         break;
       case 'unfollow':
@@ -73,14 +73,17 @@ function promptUser() {
         Session.currentSession.getNewsfeed()
         promptUser()
         break;
+
       case 'post':
-        Session.currentSession.postItem(args[1]);
+        const title = args[0];
+        const content = args.slice(1).join(' ');
+        Session.currentSession.postItem(title, content);
         promptUser();
         break;
-      case 'comment':
-        Session.currentSession.comment(args[1], args[2]);
-        promptUser();
-        break;
+
+
+
+
 
       case 'reply':
         Session.currentSession.addReply(args[0], args[1], args[2]);

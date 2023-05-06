@@ -81,18 +81,43 @@ class Session {
 
   }
 
-  follow(username) {
+  async follow(username) {
     if (Session.currentSession) {
-      const userToFollow = User.users.find(user => user.username === username);
-      if (userToFollow) {
-        this.user.follow(userToFollow);
-        console.log(`${this.user.username} is now following ${userToFollow.username}.`);
-      } else {
-        console.error(`Could not find user ${username} to follow.`);
+
+      // Get the current user's ID
+      // const { user } = await supabase.auth.user();
+      const currentUserId = Session.currentSession.user.id;
+
+      // Get the ID of the user being followed
+      const { data: users, error } = await supabase
+        .from('users')
+        .select('id')
+        .eq('username', username)
+        .single();
+
+      if (error) {
+        console.error(error);
+        return;
       }
+
+      const userId = users.id;
+
+      // Insert a new row into the followers table
+      const { error: insertError } = await supabase
+        .from('follows')
+        .insert({ follower_id: currentUserId, followee_id: userId });
+
+      if (insertError) {
+        console.error(insertError);
+        return;
+      }
+
+      console.log(`You are now following ${username}.`);
     } else {
-      console.error('User is not logged in.');
+      console.log(`You are not logged in.`);
     }
+
+
   }
 
   unfollow(username) {
@@ -108,11 +133,25 @@ class Session {
     }
   }
   // postItem to the wall
-  postItem(content) {
+  async postItem(title, content) {
+
     if (Session.currentSession !== null) {
-      const post = this.user.createPost(content);
-      this.newsfeed.push(post);
-      console.log(`User ${this.user.username} posted: ${content}`)
+
+      const authorId = Session.currentSession.user.id;
+
+
+      const { data, error } = await supabase.from('posts').insert({ user_id: authorId, title: title, text: content });
+
+      if (error) {
+        // throw new Error(error.message);
+        console.log(error.message);
+        return
+      }
+
+      console.log(`User ${this.user.username} posted: ${title}`);
+
+
+
     } else {
       console.error('User not logged in');
 
