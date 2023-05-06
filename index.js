@@ -1,117 +1,204 @@
-const readline = require('readline');
-const { program } = require('commander');
+const Session = require('./models/Session')
+const User = require('./models/User');
+const {
+  NewsFeedSortStrategy,
+  CommentCountSortStrategy,
+  FollowedUsersSortStrategy,
+  ScoreSortStrategy,
+  NewsFeed } = require('./models/Newsfeed')
 
-// Define the quiz questions and answers
-const quiz = [
-  {
-    question: "What is the capital of France?",
-    answer: "Paris"
-  },
-  {
-    question: "What is the largest country in the world?",
-    answer: "Russia"
-  },
-  {
-    question: "What is the currency of Japan?",
-    answer: "Yen"
-  }
-];
 
-// Create a readline interface for reading user input
-const rl = readline.createInterface({
+
+const rl = require('readline').createInterface({
   input: process.stdin,
   output: process.stdout
-});
+})
 
-// Keep track of the user's score
-let score = 0;
+// rl.question("Do you have an account? (y/n): ", (answer) => {
+//   if (answer === "y") {
+//     console.log("You have an account. Logging in...");
+//     login();
+//   } else {
+//     console.log("You don't have an account. Signuping...");
+//     // signup();
+//     promptSignup()
+//   }
+// });
 
-// Define the login function
-function login(username, password) {
-  // Check if the username and password are valid
-  if (username === "admin" && password === "password") {
-    console.log("Login successful!");
-    // Start the quiz by asking the first question
-    askQuestion(0);
-  } else {
-    console.log("Login failed. Please try again.");
-    // Ask the user to log in again
-    program.prompt();
+// function promptSignup(username, password) {
+
+//   Session.signup(username, password);
+//   promptUser()
+// }
+
+function promptUser() {
+
+  console.log("\n");
+  console.log("FOLLOWING COMMANDS ARE AVAILABLE");
+  console.log("'signup' Create a new user")
+  console.log("'login' Login an existing user");
+  console.log("'follow' Follow a user");
+  console.log(" 'unfollow' Unfollow a user");
+
+  console.log(" 'upvote' Upvote a post");
+  console.log("'downvote' a post");
+  console.log("'upvoteComment' Upvote a comment");
+  console.log("'downvoteComment' Downvote a comment");
+  console.log("'comment' comment on a post")
+  console.log("'reply' Reply on a comment")
+
+  console.log("'showallusers' Show all users");
+  console.log("'shownewsfeed' Show Newsfeed");
+  console.log("'logout' Logout User")
+  console.log("'exit' Exit the application");
+  console.log("'help' ")
+
+  console.log("\n");
+
+  rl.question('> ', (input) => {
+    const [command, ...args] = input.split(' ');
+    const flags = parseFlags(args);
+    const { username, password } = flags;
+    switch (command) {
+      case 'login':
+        // console.log("You entered 'login'");
+
+
+        Session.login(username, password)
+        promptUser()
+        break;
+      case 'signup':
+
+
+
+        Session.signup(username, password)
+
+        promptUser()
+        // signup()
+        // promptUser()
+        break;
+      case 'follow':
+        // console.log("You entered 'follow'");
+        // console.log('You followed', args[0])
+        Session.currentSession.follow(args[0])
+        promptUser()
+        break;
+      case 'unfollow':
+        Session.currentSession.unfollow(args[0])
+        promptUser()
+        break;
+
+
+      case 'post':
+        const title = args[0];
+        const content = args.slice(1).join(' ');
+        Session.currentSession.postItem(title, content);
+        promptUser();
+        break;
+
+      case "comment":
+        const postId = args[0]
+        const comment = args.slice(1).join(' ');
+        Session.currentSession.comment(postId, comment);
+        promptUser();
+        break;
+
+
+      case 'reply':
+        const commentId = args[0]
+        const reply = args.slice(1).join(' ');
+        Session.currentSession.reply(commentId, reply);
+        promptUser();
+        break;
+
+      case 'upvote':
+        Session.currentSession.upvotePost(args[0]);
+        promptUser();
+        break;
+      case 'downvote':
+        Session.currentSession.downvotePost(args[0]);
+        promptUser();
+        break;
+      case 'upvotecomment':
+        Session.currentSession.upvoteComment(args[0]);
+        promptUser();
+        break;
+      case 'downvotecomment':
+        Session.currentSession.downvoteComment(args[0], args[1]);
+        promptUser();
+        break;
+      case "showallusers":
+        Session.currentSession.getAllUsers()
+        promptUser();
+        break;
+
+      case 'logout':
+        Session.logout();
+
+        process.exit(0);
+
+
+      case 'shownewsfeed':
+        const sortStrategy = args[0]
+        // Session.currentSession.showNewsFeed(sortStrategy);
+        const currentUser = Session.currentSession;
+        const newsFeed = new NewsFeed(currentUser, new NewsFeedSortStrategy());
+        const newsFeedItems = newsFeed.getNewsFeed();
+        console.log(newsFeedItems)
+        promptUser()
+        break;
+
+
+      case 'exit':
+        process.exit(0);
+      // break;
+      case 'help':
+
+        console.log('List of available commands:');
+        console.log('- signup --username <username> --password <password>: create a new user');
+        console.log('- login --email <email> --password <password>: log in as an existing user');
+        console.log('- follow <follower_email> <followee_email>: make the follower user follow the followee user');
+        console.log('- help: display this help message');
+        promptUser();
+        break;
+      default:
+        console.log("Invalid command. Please try again.\n");
+        promptUser()
+
+
+    }
+  })
+}
+
+//parse flags
+function parseFlags(args) {
+  const flags = {};
+  for (let i = 0; i < args.length; i++) {
+    let arg = args[i]
+    if (arg.startsWith('--')) {
+      const flagName = arg.slice(2);
+      const flagValue = args[i + 1];
+      flags[flagName] = flagValue;
+      i++
+    }
+
   }
+  return flags;
 }
 
-// Ask the user each question in the quiz
-function askQuestion(index) {
-  rl.question(quiz[index].question + "\n", (answer) => {
-    if (answer.toLowerCase() === quiz[index].answer.toLowerCase()) {
-      console.log("Correct!");
-      score++;
-    } else {
-      console.log("Incorrect. The correct answer is: " + quiz[index].answer);
-    }
-    if (index < quiz.length - 1) {
-      askQuestion(index + 1);
-    } else {
-      console.log("Quiz complete! Your score is: " + score + "/" + quiz.length);
-      rl.close();
-    }
-  });
-}
 
-// Define the command-line options
-program
-  .version('0.1.0')
-  .option('-u, --username <username>', 'Specify the username')
-  .option('-p, --password <password>', 'Specify the password')
-  .parse(process.argv);
-
-// Prompt the user to log in
-program.prompt = () => {
-  rl.question('Enter your username: ', (username) => {
-    rl.question('Enter your password: ', (password) => {
-      login(username, password);
-    });
-  });
-};
-
-// Parse the command-line arguments and start the program
-program.parse(process.argv);
+// console.log("Welcome to my application!");
+// rl.question("Do you have an account? (y/n): ", (answer) => {
+//   if (answer === "y") {
+//     // login();
+//     // promptLogin()
+//     Session.login(args[0], args[1])
+//   } else {
+//     // signup();
+//     // promptSignup()
+//     Session.signup()
+//   }
+// });
 
 
-
-// Session.login("percy123", "1234")
-
-// // Session.currentSession.follow("Tormund")
-// Session.currentSession.postItem("Just setting up my app")
-
-
-
-
-// // upvote post
-// // Session.currentSession.upvotePost(1)
-
-// // logout session
-// // Session.logout()
-// // Session.currentSession.upvotePost(1)
-
-// Session.currentSession.postItem("Fooling around")
-
-
-
-
-
-// Session.currentSession.upvotePost(1)
-
-// Session.currentSession.comment(1, "I am a comment")
-
-// // reply on a comment
-// Session.currentSession.addReply(1, "I am a reply", 1)
-
-// // print newsfeed
-// Session.currentSession.getNewsFeed()
-
-
-
-
-
-
+promptUser()
