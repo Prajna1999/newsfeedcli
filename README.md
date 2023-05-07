@@ -1,4 +1,4 @@
-# Social Media CLI Tool
+# Social Media CLI Tool (First look-this is a live document. I keep adding things while I optimize my code)
 
 Social Media CLI Tool is a powerful command-line interface built with Node.js, allowing users to interact with their social media account for actions like following, posting, upvoting, and downvoting directly from the terminal.
 
@@ -11,6 +11,7 @@ Social Media CLI Tool is a powerful command-line interface built with Node.js, a
   - [post](#post)
   - [upvote](#upvote)
   - [downvote](#downvote)
+  -and others (write later)
 - [Options](#options)
 - [Examples](#examples)
 - [Contributing](#contributing)
@@ -57,9 +58,9 @@ Create a new post.
 
 Usage:
 
-sh
 
-social post <message>
+
+s post <message>
 
 upvote
 
@@ -67,9 +68,9 @@ Upvote a post by its ID.
 
 Usage:
 
-sh
 
-social upvote <post_id>
+
+ upvote <post_id>
 
 downvote
 
@@ -77,14 +78,14 @@ Downvote a post by its ID.
 
 Usage:
 
-sh
 
-social downvote <post_id>
+
+ downvote <post_id>
 
 Options
 
     --help: Display help information for the CLI tool and its commands.
-    --version: Display the version number of the CLI tool.
+    -
 
 2. Examples
 
@@ -94,7 +95,7 @@ Follow a user with the username john_doe:
 
     
 
-social follow john_doe
+ follow john_doe
 
 Create a new post with the message "Hello, world!":
 
@@ -121,7 +122,7 @@ Comment on a post.
 comment <postid> Your comment
 
 
-Contributing
+## Contributing
 
 Please read CONTRIBUTING.md for details on our code of conduct, and the process for submitting pull requests.
 License
