@@ -1,5 +1,7 @@
 const { createClient } = require('@supabase/supabase-js')
 
+// not recommended. Just for test purpose. 
+// Better have a .env file
 const SUPABASE_URL = "https://roxbbbxlqouzumqfsstv.supabase.co"
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJveGJiYnhscW91enVtcWZzc3R2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODMwMDU1MTAsImV4cCI6MTk5ODU4MTUxMH0.rhEzoIV-9UB8me5RXag7mOsitHWLKSM53UHwk97YddQ"
 
