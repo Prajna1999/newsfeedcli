@@ -1,5 +1,6 @@
 const Session = require('./models/Session')
-const User = require('./models/User');
+
+const {timeAgo}=require('./utils.js');
 const {
   getNewsFeed,
   fetchPosts,
@@ -45,6 +46,8 @@ async function showNewsFeed() {
             : score,
         0
       );
+      console.log(`${post.title}- ${post.text} - ${timeAgo(post.created_at)}`)
+      
     });
 
     const strategyName = await prompt('Enter strategy name (followedusers, score, comments, timestamp): ');
