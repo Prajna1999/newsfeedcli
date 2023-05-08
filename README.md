@@ -1,3 +1,5 @@
+
+
 # Social Media CLI Tool (First look-this is a live document. I keep adding things while I optimize my code)
 
 Social Media CLI Tool is a powerful command-line interface built with Node.js, allowing users to interact with their social media account for actions like following, posting, upvoting, and downvoting directly from the terminal.
@@ -128,3 +130,4 @@ Please read CONTRIBUTING.md for details on our code of conduct, and the process 
 License
 
 This project is licensed under the MIT License - see the LICENSE.md file for details.
+
