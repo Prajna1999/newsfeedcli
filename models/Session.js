@@ -1,7 +1,7 @@
 const User = require('./User');
 
 
-const { getUserByUsername, supabase, findUserByUsernameAndPassword } = require('../utils')
+const { getUserByUsername, supabase, findUserByUsernameAndPassword, timeAgo } = require('../utils')
 
 class Session {
 
@@ -84,8 +84,7 @@ class Session {
     if (Session.currentSession) {
 
       // Get the current user's ID
-      // const { user } = await supabase.auth.user();
-      const currentUserId = Session.currentSession.user.id;
+     
       try {
         const { data: followee } = await supabase
           .from("users")
