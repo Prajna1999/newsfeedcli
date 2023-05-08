@@ -1,6 +1,6 @@
 const Session = require('./models/Session')
 
-const {timeAgo}=require('./utils.js');
+const { timeAgo } = require('./utils.js');
 const {
   getNewsFeed,
   fetchPosts,
@@ -30,7 +30,7 @@ function prompt(question) {
 
 async function showNewsFeed() {
   try {
-    const userId = 1;
+    const userId = Session.currentSession.user.id;
     const posts = await fetchPosts();
     const followedUsers = await fetchFollowedUsers(userId);
     const postVotes = await fetchPostVotes();
@@ -47,7 +47,7 @@ async function showNewsFeed() {
         0
       );
       console.log(`${post.title}- ${post.text} - ${timeAgo(post.created_at)}`)
-      
+
     });
 
     const strategyName = await prompt('Enter strategy name (followedusers, score, comments, timestamp): ');
@@ -94,7 +94,7 @@ function promptUser() {
     const { username, password } = flags;
     switch (command) {
       case 'login':
-        
+
 
 
         Session.login(username, password)
@@ -107,10 +107,10 @@ function promptUser() {
         Session.signup(username, password)
 
         promptUser()
-        
+
         break;
       case 'follow':
-       
+
         Session.currentSession.follow(args[0])
         promptUser()
         break;
@@ -171,7 +171,7 @@ function promptUser() {
         process.exit(0);
 
 
-     
+
 
 
       case 'exit':
