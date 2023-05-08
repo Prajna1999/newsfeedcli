@@ -1,11 +1,14 @@
 const Session = require('./models/Session')
 const User = require('./models/User');
 const {
-  NewsFeedSortStrategy,
-  CommentCountSortStrategy,
-  FollowedUsersSortStrategy,
-  ScoreSortStrategy,
-  NewsFeed } = require('./models/Newsfeed')
+  getNewsFeed,
+  fetchPosts,
+  fetchFollowedUsers,
+  fetchPostVotes,
+  fetchComments
+
+
+} = require('./models/Newsfeed')
 
 
 
@@ -14,38 +17,65 @@ const rl = require('readline').createInterface({
   output: process.stdout
 })
 
-// rl.question("Do you have an account? (y/n): ", (answer) => {
-//   if (answer === "y") {
-//     console.log("You have an account. Logging in...");
-//     login();
-//   } else {
-//     console.log("You don't have an account. Signuping...");
-//     // signup();
-//     promptSignup()
-//   }
-// });
+function prompt(question) {
+  return new Promise((resolve) => {
+    rl.question(question, (answer) => {
+      resolve(answer);
+    });
+  });
+}
 
-// function promptSignup(username, password) {
+// write the function showNewsFeed
 
-//   Session.signup(username, password);
-//   promptUser()
-// }
+async function showNewsFeed() {
+  try {
+    const userId = 1;
+    const posts = await fetchPosts();
+    const followedUsers = await fetchFollowedUsers(userId);
+    const postVotes = await fetchPostVotes();
+    const comments = await fetchComments();
+
+    // Add comments and score to each post
+    posts.forEach(post => {
+      post.comments = comments.filter(comment => comment.post_id === post.id);
+      post.score = postVotes.reduce(
+        (score, vote) =>
+          vote.post_id === post.id
+            ? score + (vote.vote_type === 'UPVOTE' ? 1 : -1)
+            : score,
+        0
+      );
+    });
+
+    const strategyName = await prompt('Enter strategy name (followedusers, score, comments, timestamp): ');
+
+    // Call getNewsFeed() function from the previous example
+    getNewsFeed(strategyName, posts, followedUsers);
+
+    // rl.close();
+    promptUser()
+  } catch (error) {
+    console.error('Error fetching data:', error.message);
+    // rl.close();
+    promptUser()
+  }
+}
 
 function promptUser() {
 
   console.log("\n");
   console.log("FOLLOWING COMMANDS ARE AVAILABLE");
-  console.log("'signup' Create a new user")
-  console.log("'login' Login an existing user");
-  console.log("'follow' Follow a user");
-  console.log(" 'unfollow' Unfollow a user");
-
-  console.log(" 'upvote' Upvote a post");
-  console.log("'downvote' a post");
-  console.log("'upvoteComment' Upvote a comment");
-  console.log("'downvoteComment' Downvote a comment");
-  console.log("'comment' comment on a post")
-  console.log("'reply' Reply on a comment")
+  console.log("'signup --username <username> --password <password>' Create a new user")
+  console.log("'login --username <username> --password <password>' Login an existing user");
+  console.log("'follow <username>' Follow a user");
+  console.log("'unfollow <username>' Unfollow a user");
+  console.log("'post <title_text> <content_text>")
+  console.log(" 'upvote <post_id>' Upvote a post");
+  console.log("'downvote <post_id>' a post");
+  console.log("'upvoteComment <comment_id>' Upvote a comment");
+  console.log("'downvoteComment <comment_id>' Downvote a comment");
+  console.log("'comment <post_id>' comment on a post")
+  console.log("'reply <comment_id> <text>' Reply on a comment")
 
   console.log("'showallusers' Show all users");
   console.log("'shownewsfeed' Show Newsfeed");
@@ -61,7 +91,7 @@ function promptUser() {
     const { username, password } = flags;
     switch (command) {
       case 'login':
-        // console.log("You entered 'login'");
+        
 
 
         Session.login(username, password)
@@ -74,12 +104,10 @@ function promptUser() {
         Session.signup(username, password)
 
         promptUser()
-        // signup()
-        // promptUser()
+        
         break;
       case 'follow':
-        // console.log("You entered 'follow'");
-        // console.log('You followed', args[0])
+       
         Session.currentSession.follow(args[0])
         promptUser()
         break;
@@ -131,27 +159,21 @@ function promptUser() {
         Session.currentSession.getAllUsers()
         promptUser();
         break;
-
+      case "shownewsfeed":
+        showNewsFeed();
+        break;
       case 'logout':
         Session.logout();
 
         process.exit(0);
 
 
-      case 'shownewsfeed':
-        const sortStrategy = args[0]
-        // Session.currentSession.showNewsFeed(sortStrategy);
-        const currentUser = Session.currentSession;
-        const newsFeed = new NewsFeed(currentUser, new NewsFeedSortStrategy());
-        const newsFeedItems = newsFeed.getNewsFeed();
-        console.log(newsFeedItems)
-        promptUser()
-        break;
+     
 
 
       case 'exit':
         process.exit(0);
-      // break;
+
       case 'help':
 
         console.log('List of available commands:');
@@ -187,18 +209,7 @@ function parseFlags(args) {
 }
 
 
-// console.log("Welcome to my application!");
-// rl.question("Do you have an account? (y/n): ", (answer) => {
-//   if (answer === "y") {
-//     // login();
-//     // promptLogin()
-//     Session.login(args[0], args[1])
-//   } else {
-//     // signup();
-//     // promptSignup()
-//     Session.signup()
-//   }
-// });
+
 
 
 promptUser()

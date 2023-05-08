@@ -1,6 +1,3 @@
-Fix the upvote and downvote bug where an user can simultaneously upvote and downvote post
-
-
 
 Design a News Feed
 
