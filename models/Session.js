@@ -1,4 +1,5 @@
 const User = require('./User');
+const chalk = require('chalk');
 
 
 const { getUserByUsername, supabase, findUserByUsernameAndPassword, timeAgo } = require('../utils')
@@ -22,16 +23,16 @@ class Session {
       // set the session
       Session.currentSession = new Session(user);
       // this.isLoggedin = true
-      console.log(`User ${username} logged in successfully`)
+      console.log("User " + chalk.green(username) + " logged in successfully")
     } else {
-      console.error(`Invalid username or password.`);
+      console.error(chalk.red(`Invalid username or password.`));
     }
   }
 
   static logout() {
     // this.isLoggedIn = false;
     Session.currentSession = null;
-    console.log(`User logged out successfully. Adios friend`);
+    console.log(chalk.green(`User logged out successfully. Adios friend`));
   }
 
   // signup static method
@@ -39,7 +40,7 @@ class Session {
 
     if (Session.currentSession !== null) {
 
-      console.log(`User ${this.user.username} is already logged in.`);
+      console.log(chalk.red("User "+ this.user.username+ " is already logged in."));
 
       return;
 
@@ -48,7 +49,7 @@ class Session {
     //if the username available, then create a user.
     const usernameExists = await getUserByUsername(username)
     if (usernameExists) {
-      throw new Error(username + 'is already taken')
+      throw new Error(chalk.red(username) + ' is already taken')
     }
 
 
@@ -70,7 +71,7 @@ class Session {
 
     // newUser.signup();
 
-    console.log(`User ${username} has been created successfully.`);
+    console.log("User " +chalk.green(username)+" has been created successfully.");
 
     Session.currentSession = new Session(newUser)
 
@@ -84,7 +85,7 @@ class Session {
     if (Session.currentSession) {
 
       // Get the current user's ID
-     
+
       try {
         const { data: followee } = await supabase
           .from("users")
@@ -93,7 +94,7 @@ class Session {
           .single();
 
         if (!followee) {
-          console.log(`User ${username} does not exist.`);
+          console.log(chalk.red("User " +username+" does not exist."));
           return;
         }
 
@@ -106,7 +107,7 @@ class Session {
           .single();
 
         if (existingFollow) {
-          console.log(`You are already following ${username}.`);
+          console.log(chalk.green("You are already following " +username));
           return;
         }
 
@@ -120,13 +121,13 @@ class Session {
         if (error) {
           console.error(error);
         } else {
-          console.log(`You are now following ${username}.`);
+          console.log(chalk.green("You are now following "+ username));
         }
       } catch (error) {
         console.error(error);
       }
     } else {
-      console.log(`You are not logged in.`);
+      console.log(chalk.red(You are not logged in.));
     }
 
 
@@ -244,7 +245,7 @@ class Session {
         return
       }
     } else {
-      console.error("User not logged in lalal");
+      console.error("User not logged in.");
       return
     }
     console.log(`You upvoted post ${postId}`);
